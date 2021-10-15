@@ -1,5 +1,6 @@
 const fs = require("fs/promises")
 const path = require("path")
+const uuid = require("uuid")
 
 const contactsPath = path.join(__dirname, "/contacts.json")
 
@@ -15,16 +16,16 @@ const getContactById = async (contactId) => {
 
 const removeContact = async (contactId) => {
   const list = await listContacts()
-  const userInd = list.findIndex((user) => user.id === Number(contactId))
+  const userIndex = list.findIndex((user) => user.id === Number(contactId))
 
-  list.splice(userInd, 1)
+  list.splice(userIndex, 1)
 
   await fs.writeFile(contactsPath, JSON.stringify(list))
 }
 
 const addContact = async (body) => {
   const list = await listContacts()
-  const id = list.length ? list[list.length - 1].id + 1 : 1
+  const id = uuid.v4()
   const newContact = { id, ...body }
   list.push(newContact)
 
@@ -34,12 +35,12 @@ const addContact = async (body) => {
 
 const updateContact = async (contactId, body) => {
   const list = await listContacts()
-  const userInd = list.findIndex((user) => user.id === Number(contactId))
+  const userIndex = list.findIndex((user) => user.id === Number(contactId))
 
-  list[userInd] = { ...list[userInd], ...body }
+  list[userIndex] = { ...list[userIndex], ...body }
 
   await fs.writeFile(contactsPath, JSON.stringify(list))
-  return list[userInd]
+  return list[userIndex]
 }
 
 module.exports = {
