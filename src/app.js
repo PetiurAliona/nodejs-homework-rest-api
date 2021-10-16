@@ -4,7 +4,7 @@ const morgan = require("morgan")
 const cors = require("cors")
 const dotenv = require("dotenv")
 
-const contactsRouter = require("./routes/contacts.routes")
+const contactsRouter = require("./contacts/contacts.route")
 
 exports.Server = class {
   async start() {
@@ -47,19 +47,15 @@ exports.Server = class {
     })
   }
 
-  startListening() {
-    const { api } = getConfig()
 
-    this.server.listen(api.port, () => {
-      console.log("Started listening on port", api.port)
+
+  startListening() {
+    const PORT = process.env.PORT || 3000
+
+    this.server.listen(PORT, () => {
+      console.log(`Server running. Use our API on port: ${PORT}`)
     })
   }
 
-  // startListening() {
-  //   const PORT = process.env.PORT || 3000
-
-  //   this.server.listen(PORT, () => {
-  //     console.log(`Server running. Use our API on port: ${PORT}`)
-  //   })
-  // }
+ 
 }
