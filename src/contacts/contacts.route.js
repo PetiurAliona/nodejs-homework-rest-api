@@ -1,8 +1,8 @@
 const express = require("express")
 const router = express.Router()
 
-const { validate } = require("../helpers/validate")
-const { createContactSchema, updateContactSchema } = require("./contacts.schema")
+const { validate, validateId } = require("../helpers/validate")
+const { createContactSchema, updateContactSchema, updateFavoriteContactSchema } = require("./contacts.schema")
 
 const controllerContacts = require("./contacts.controller")
 
@@ -15,7 +15,7 @@ router.get("/", async (req, res, next) => {
   }
 })
 
-router.get("/:contactId", async (req, res, next) => {
+router.get("/:contactId", validateId, async (req, res, next) => {
   try {
     const contact = await controllerContacts.getContactById(req.params.contactId)
     return res.status(200).send(contact)
@@ -33,7 +33,7 @@ router.post("/", validate(createContactSchema), async (req, res, next) => {
   }
 })
 
-router.delete("/:contactId", async (req, res, next) => {
+router.delete("/:contactId", validateId, async (req, res, next) => {
   try {
     await controllerContacts.removeContact(req.params.contactId)
     return res.status(200).send({ message: "contact deleted" })
@@ -42,7 +42,16 @@ router.delete("/:contactId", async (req, res, next) => {
   }
 })
 
-router.patch("/:contactId", validate(updateContactSchema), async (req, res, next) => {
+router.patch("/:contactId", validate(updateContactSchema), validateId, async (req, res, next) => {
+  try {
+    const updatedContact = await controllerContacts.updateContact(req.params.contactId, req.body)
+    return res.status(200).send(updatedContact)
+  } catch (err) {
+    next(err)
+  }
+})
+
+router.patch("/:contactId/favorite", validate(updateFavoriteContactSchema), validateId, async (req, res, next) => {
   try {
     const updatedContact = await controllerContacts.updateContact(req.params.contactId, req.body)
     return res.status(200).send(updatedContact)
