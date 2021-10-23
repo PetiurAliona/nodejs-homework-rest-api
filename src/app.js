@@ -3,6 +3,7 @@ const path = require("path")
 const morgan = require("morgan")
 const cors = require("cors")
 const dotenv = require("dotenv")
+const mongoose = require("mongoose")
 
 const contactsRouter = require("./contacts/contacts.route")
 
@@ -10,6 +11,7 @@ exports.Server = class {
   async start() {
     this.initServer()
     this.initConfig()
+    await this.initDatabase()
     this.initMiddlewares()
     this.initRoutes()
     this.initErrorHandling()
@@ -22,6 +24,21 @@ exports.Server = class {
 
   initConfig() {
     dotenv.config({ path: path.join(__dirname, "../.env") })
+  }
+
+  async initDatabase() {
+    try {
+      const { DATABASE_URL } = process.env
+      await mongoose.connect(DATABASE_URL, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      })
+
+      console.log("Database connection successful")
+    } catch (err) {
+      console.log("Database connection error", err)
+      process.exit(1)
+    }
   }
 
   initMiddlewares() {
@@ -47,15 +64,11 @@ exports.Server = class {
     })
   }
 
-
-
   startListening() {
-    const PORT = process.env.PORT || 3000
+    const PORT = process.env.PORT || 3030
 
     this.server.listen(PORT, () => {
       console.log(`Server running. Use our API on port: ${PORT}`)
     })
   }
-
- 
 }
