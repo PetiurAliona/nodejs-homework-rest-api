@@ -6,6 +6,7 @@ const dotenv = require("dotenv")
 const mongoose = require("mongoose")
 
 const contactsRouter = require("./contacts/contacts.route")
+const usersRouter = require("./users/users.route")
 
 exports.Server = class {
   async start() {
@@ -51,6 +52,7 @@ exports.Server = class {
 
   initRoutes() {
     this.server.use("/api/contacts", contactsRouter)
+    this.server.use("/api/users", usersRouter)
   }
 
   initErrorHandling() {
