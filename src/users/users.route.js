@@ -1,10 +1,11 @@
 const express = require("express")
 const router = express.Router()
-const multer = require("multer")
-const { storage } = require("../services/multer")
+
+const { upload } = require("../services/multer")
 
 const { validate } = require("../helpers/validate")
-const { authorize, compressImage } = require("./auth.middleware")
+const { authorize } = require("./auth.middleware")
+const { compressImage } = require("../services/compress")
 
 const { signUp, signIn, logOut, updateAvatarUser } = require("./users.controller")
 
@@ -12,9 +13,9 @@ const { signupSchema, loginSchema } = require("./users.schema")
 
 const { serializeUser, serializeUserWithToken, serializeUserAvatar } = require("./users.serializer")
 
-router.post("/signup", validate(signupSchema), async (req, res, next) => {
+router.post("/signup", upload.single("avatarURL"), compressImage(), async (req, res, next) => {
   try {
-    const newUser = await signUp(req.body)
+    const newUser = await signUp(req.body, req.file)
     return res.status(201).send(serializeUser(newUser))
   } catch (err) {
     next(err)
@@ -47,12 +48,10 @@ router.get("/current", authorize, async (req, res, next) => {
   }
 })
 
-const upload = multer({ storage })
-
-router.patch("/avatars", authorize, upload.single("avatar"), compressImage(), async (req, res, next) => {
+router.patch("/avatars", authorize, upload.single("avatarURL"), compressImage(), async (req, res, next) => {
   try {
-    const updateAvatarUser = await updateAvatarUser(req.user, req.file)
-    return res.status(200).send(serializeUserAvatar(updateAvatarUser))
+    const updateAvatar = await updateAvatarUser(req.user, req.file)
+    return res.status(200).send(serializeUserAvatar(updateAvatar))
   } catch (error) {
     next(error)
   }

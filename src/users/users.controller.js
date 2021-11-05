@@ -2,11 +2,9 @@ const { Conflict, Unauthorized } = require("http-errors")
 const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
 
-var gravatar = require("gravatar")
-
 const User = require("./users.model")
 
-async function signUp({ email, password }) {
+async function signUp({ email, password }, userFile) {
   const existingUser = await User.findOne({ email })
   if (existingUser) {
     throw new Conflict(`This '${email}' in use`)
@@ -14,16 +12,10 @@ async function signUp({ email, password }) {
 
   const hashPassword = await bcrypt.hash(password, 2)
 
-  const url = gravatar.url(email, {
-    s: "200",
-    r: "pg",
-    d: "mp",
-  })
-
   const newUser = await User.create({
     email: email,
     password: hashPassword,
-    avatarURL: url,
+    avatarURL: userFile.filename,
   })
 
   return newUser
