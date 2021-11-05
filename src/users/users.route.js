@@ -1,14 +1,16 @@
 const express = require("express")
 const router = express.Router()
+const multer = require("multer")
+const { storage } = require("../services/multer")
 
 const { validate } = require("../helpers/validate")
-const { authorize } = require("./auth.middleware")
+const { authorize, compressImage } = require("./auth.middleware")
 
-const { signUp, signIn, logOut } = require("./users.controller")
+const { signUp, signIn, logOut, updateAvatarUser } = require("./users.controller")
 
 const { signupSchema, loginSchema } = require("./users.schema")
 
-const { serializeUser, serializeUserWithToken } = require("./users.serializer")
+const { serializeUser, serializeUserWithToken, serializeUserAvatar } = require("./users.serializer")
 
 router.post("/signup", validate(signupSchema), async (req, res, next) => {
   try {
@@ -42,6 +44,17 @@ router.get("/current", authorize, async (req, res, next) => {
     return res.status(200).send(serializeUser(req.user))
   } catch (err) {
     next(err)
+  }
+})
+
+const upload = multer({ storage })
+
+router.patch("/avatars", authorize, upload.single("avatar"), compressImage(), async (req, res, next) => {
+  try {
+    const updateAvatarUser = await updateAvatarUser(req.user, req.file)
+    return res.status(200).send(serializeUserAvatar(updateAvatarUser))
+  } catch (error) {
+    next(error)
   }
 })
 

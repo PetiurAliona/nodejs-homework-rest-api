@@ -12,5 +12,12 @@ const serializeUserWithToken = (userWithToken) => {
   }
 }
 
+const serializeUserAvatar = (user) => {
+  return {
+    avatarURL: user.avatarURL,
+  }
+}
+
 exports.serializeUser = serializeUser
 exports.serializeUserWithToken = serializeUserWithToken
+exports.serializeUserAvatar = serializeUserAvatar

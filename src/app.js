@@ -46,6 +46,7 @@ exports.Server = class {
     const formatsLogger = this.server.get("env") === "development" ? "dev" : "short"
 
     this.server.use(express.json())
+    this.server.use(express.static("public"))
     this.server.use(morgan(formatsLogger))
     this.server.use(cors({ origin: "*" }))
   }
