@@ -7,6 +7,9 @@ const STATIC_DIR = path.join(__dirname, "../../public/avatars")
 
 exports.compressImage = () => {
   return async (req, res, next) => {
+    if (!req.file) {
+      return next()
+    }
     const draftFilePath = req.file.path
     const file = await Jimp.read(draftFilePath)
     const compressedPath = path.join(STATIC_DIR, req.file.filename)

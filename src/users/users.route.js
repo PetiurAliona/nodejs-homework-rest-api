@@ -52,8 +52,8 @@ router.patch("/avatars", authorize, upload.single("avatarURL"), compressImage(),
   try {
     const updateAvatar = await updateAvatarUser(req.user, req.file)
     return res.status(200).send(serializeUserAvatar(updateAvatar))
-  } catch (error) {
-    next(error)
+  } catch (err) {
+    next(err)
   }
 })
 

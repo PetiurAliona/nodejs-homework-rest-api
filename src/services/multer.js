@@ -12,7 +12,7 @@ const storage = multer.diskStorage({
       return cb(new BadRequest("Only images allowed"))
     }
 
-    const url = gravatar.url(req.body.email)
+    const url = gravatar.url(req.body.email || req.user.email)
     const string = "avatar/"
     const newUrl = url.slice(url.indexOf(string) + string.length)
     console.log(newUrl)

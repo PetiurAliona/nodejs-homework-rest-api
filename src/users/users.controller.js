@@ -1,4 +1,4 @@
-const { Conflict, Unauthorized } = require("http-errors")
+const { Conflict, Unauthorized, BadRequest } = require("http-errors")
 const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
 
@@ -43,7 +43,10 @@ async function logOut(user) {
 }
 
 async function updateAvatarUser(user, updateParams) {
-  await User.findByIdAndUpdate(user._id, { avatarURL: updateParams.path })
+  if (!updateParams) {
+    throw new BadRequest("No file")
+  }
+  return await User.findByIdAndUpdate(user._id, { avatarURL: updateParams.filename }, { new: true })
 }
 
 module.exports = {
