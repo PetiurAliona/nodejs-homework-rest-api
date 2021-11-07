@@ -1,10 +1,10 @@
-const { Conflict, Unauthorized } = require("http-errors")
+const { Conflict, Unauthorized, BadRequest } = require("http-errors")
 const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
 
 const User = require("./users.model")
 
-async function signUp({ email, password }) {
+async function signUp({ email, password }, userFile) {
   const existingUser = await User.findOne({ email })
   if (existingUser) {
     throw new Conflict(`This '${email}' in use`)
@@ -15,6 +15,7 @@ async function signUp({ email, password }) {
   const newUser = await User.create({
     email: email,
     password: hashPassword,
+    avatarURL: userFile.filename,
   })
 
   return newUser
@@ -41,8 +42,16 @@ async function logOut(user) {
   await User.findByIdAndUpdate(user._id, { token: null })
 }
 
+async function updateAvatarUser(user, updateParams) {
+  if (!updateParams) {
+    throw new BadRequest("No file")
+  }
+  return await User.findByIdAndUpdate(user._id, { avatarURL: updateParams.filename }, { new: true })
+}
+
 module.exports = {
   signUp,
   signIn,
   logOut,
+  updateAvatarUser,
 }

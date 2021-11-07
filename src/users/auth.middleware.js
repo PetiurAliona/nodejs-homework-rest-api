@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken")
 const { Unauthorized } = require("http-errors")
+
 const User = require("./users.model")
 
 exports.authorize = async function authorize(req, res, next) {
