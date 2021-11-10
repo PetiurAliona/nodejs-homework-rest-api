@@ -1,8 +1,10 @@
-const { Conflict, Unauthorized, BadRequest } = require("http-errors")
+const { Conflict, Unauthorized, BadRequest, NotFound } = require("http-errors")
 const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
+const { v4: uuidv4 } = require("uuid")
 
 const User = require("./users.model")
+const { sendVerificationEmail } = require("../services/verify.email")
 
 async function signUp({ email, password }, userFile) {
   const existingUser = await User.findOne({ email })
@@ -16,7 +18,10 @@ async function signUp({ email, password }, userFile) {
     email: email,
     password: hashPassword,
     avatarURL: userFile.filename,
+    verifyToken: uuidv4(),
   })
+
+  await sendVerificationEmail(email, newUser.verifyToken)
 
   return newUser
 }
@@ -30,6 +35,10 @@ async function signIn({ email, password }) {
   const isPasswordValid = await bcrypt.compare(password, user.password)
   if (!isPasswordValid) {
     throw new Unauthorized("Email or password is wrong")
+  }
+
+  if (!user.verify) {
+    throw new Unauthorized("User is not verified")
   }
 
   const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET)
@@ -49,9 +58,37 @@ async function updateAvatarUser(user, updateParams) {
   return await User.findByIdAndUpdate(user._id, { avatarURL: updateParams.filename }, { new: true })
 }
 
+async function verificationToken({ verifyToken }) {
+  const user = await User.findOne({ verifyToken })
+
+  if (!user) {
+    throw new NotFound("User not found")
+  }
+
+  await User.findByIdAndUpdate(user._id, {
+    verifyToken: null,
+    verify: true,
+  })
+}
+
+async function sendRepeatedVerifyEmail({ email }) {
+  const user = await User.findOne({ email })
+  if (!user) {
+    throw new NotFound("User not found")
+  }
+
+  if (user.verify) {
+    throw new BadRequest("Verification has already been passed")
+  }
+
+  await sendVerificationEmail(email, user.verifyToken)
+}
+
 module.exports = {
   signUp,
   signIn,
   logOut,
   updateAvatarUser,
+  verificationToken,
+  sendRepeatedVerifyEmail,
 }
